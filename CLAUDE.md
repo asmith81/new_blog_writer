@@ -78,8 +78,8 @@
 
 ## roadmap pointer
 - Roadmap: docs/roadmap.md
-- Active plan: docs/plans/phase1-scaffold.md
-- Current step: Step 1 — Environment + Config
+- Active plan: docs/plans/phase2-mvp.md
+- Current step: Step 1 — Shared lib utilities
 
 ## process rules
 - Plan before coding — agree on approach before writing any code

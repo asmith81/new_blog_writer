@@ -16,8 +16,8 @@ AI-powered blog content pipeline that produces publish-ready Astro MDX files for
 
 | Phase | Name | Goal | Status |
 |---|---|---|---|
-| 1 | Scaffold | Project structure, data models, skeleton CLI, MDX components, reference docs | Active |
-| 2 | MVP | All 5 stages fully implemented with real API calls, preview, add-image | Pending |
+| 1 | Scaffold | Project structure, data models, skeleton CLI, MDX components, reference docs | Complete |
+| 2 | MVP | All 5 stages fully implemented with real API calls, preview, add-image | Active |
 
 ---
 
@@ -28,13 +28,13 @@ AI-powered blog content pipeline that produces publish-ready Astro MDX files for
 See `docs/plans/phase1-scaffold.md` for full implementation detail.
 
 **Milestones:**
-- [ ] Step 1 — Environment + Config: venv, deps, config.yaml, .env, settings class
-- [ ] Step 2 — Data Models: all Pydantic models for pipeline state
-- [ ] Step 3 — Skeleton CLI + Pipeline: all commands wired, checkpoint manager working
-- [ ] Step 4 — FG4B_Website MDX: @astrojs/mdx, FG4BBlock.astro, BlogImage.astro
-- [ ] Step 5 — Prompt stubs + Reference docs: style-guide.md, frontmatter-schema.md, prompt file stubs
-- [ ] Step 6 — Local slash commands: .claude/commands/ wired
-- [ ] Step 7 — Smoke test: CLI help, import check, checkpoint round-trip verified
+- [x] Step 1 — Environment + Config: venv, deps, config.yaml, .env, settings class
+- [x] Step 2 — Data Models: all Pydantic models for pipeline state
+- [x] Step 3 — Skeleton CLI + Pipeline: all commands wired, checkpoint manager working
+- [x] Step 4 — FG4B_Website MDX: @astrojs/mdx, FG4BBlock.astro, BlogImage.astro
+- [x] Step 5 — Prompt stubs + Reference docs: style-guide.md, frontmatter-schema.md, prompt file stubs
+- [x] Step 6 — Local slash commands: .claude/commands/ wired
+- [x] Step 7 — Smoke test: CLI help, import check, checkpoint round-trip verified
 
 ### Phase 2 — MVP
 
@@ -54,12 +54,18 @@ High-level scope:
 
 ## Current Step
 
-**Phase 1 — Step 1:** Environment + Config
+**Phase 2 — Step 1:** Shared lib utilities (ai_client, load_prompt, strip_fences, content_index)
 
-See `docs/plans/phase1-scaffold.md` for full detail.
+See `docs/plans/phase2-mvp.md` for full detail.
 
 ---
 
 ## Completed Steps
 
-*(none yet)*
+- Phase 1 — Step 1: Environment + Config (2026-04-14)
+- Phase 1 — Step 2: Data Models (2026-04-14)
+- Phase 1 — Step 3: Skeleton CLI + Pipeline (2026-04-14)
+- Phase 1 — Step 4: FG4B_Website MDX (2026-04-14)
+- Phase 1 — Step 5: Prompt stubs + Reference docs (2026-04-14)
+- Phase 1 — Step 6: Local slash commands (2026-04-14)
+- Phase 1 — Step 7: Smoke test (2026-04-14)

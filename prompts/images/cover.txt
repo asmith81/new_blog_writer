@@ -1,0 +1,1 @@
+TODO: Cover image prompt template — DALL-E 3 prompt for article cover image

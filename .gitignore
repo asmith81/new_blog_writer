@@ -39,3 +39,6 @@ uploads/
 .coverage
 htmlcov/
 .pytest_cache/
+
+# Blog drafts (working files, not committed)
+drafts/

@@ -1,0 +1,39 @@
+ai:
+  content_model: claude-opus-4-6
+  image_model: dall-e-3
+  max_tokens:
+    research: 8000
+    draft: 8000
+    fg4b_block: 2000
+    fg4b_input: 4000
+
+article_types:
+  how-to:
+    word_count_target: 1800
+    image_count: 3
+  guide:
+    word_count_target: 2400
+    image_count: 4
+  list:
+    word_count_target: 1600
+    image_count: 3
+  comparison:
+    word_count_target: 2000
+    image_count: 3
+
+images:
+  cover_size: "1792x1024"
+  body_size: "1024x1024"
+  cloudinary_folder: blog
+
+valid_categories:
+  - roofing
+  - gutters
+  - siding
+  - windows
+  - insulation
+  - general
+
+paths:
+  drafts_dir: drafts
+  prompts_dir: prompts

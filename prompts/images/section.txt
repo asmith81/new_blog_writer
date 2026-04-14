@@ -1,0 +1,1 @@
+TODO: Section image prompt template — DALL-E 3 prompt for body/section images

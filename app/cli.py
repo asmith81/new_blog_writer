@@ -1,0 +1,187 @@
+"""Typer CLI entry point for new_blog_writer."""
+from pathlib import Path
+from typing import Optional
+
+import typer
+from rich.console import Console
+from rich.table import Table
+from slugify import slugify
+
+from app.lib.config import config
+from app.pipeline import Pipeline
+
+app = typer.Typer(
+    name="blog",
+    help="AI-powered blog content pipeline for FG4B_Website.",
+    no_args_is_help=True,
+)
+console = Console()
+
+_DRAFTS_DIR = Path(config["paths"]["drafts_dir"])
+
+_STAGE_NAMES = {
+    0: "fg4b-input",
+    1: "research",
+    2: "draft",
+    3: "images",
+    4: "publish",
+}
+
+
+def _completed_stages(slug: str) -> list[int]:
+    """Return list of stage numbers whose checkpoint files exist."""
+    slug_dir = _DRAFTS_DIR / slug
+    checkpoints = {
+        0: "00_fg4b_input.json",
+        1: "01_brief.json",
+        2: "article.md",
+        3: "03_images.json",
+        4: "04_publish.json",
+    }
+    return [n for n, fname in checkpoints.items() if (slug_dir / fname).exists()]
+
+
+# ---------------------------------------------------------------------------
+# write
+# ---------------------------------------------------------------------------
+
+@app.command()
+def write(
+    topic: str = typer.Argument(..., help="Article topic"),
+    type: str = typer.Option("how-to", "--type", "-t", help="Article type (how-to, guide, list, comparison)"),
+    auto: bool = typer.Option(False, "--auto", help="Run all stages without pausing"),
+    fg4b: Optional[str] = typer.Option(None, "--fg4b", help="FG4B brand voice prose (inline)"),
+    fg4b_file: Optional[Path] = typer.Option(None, "--fg4b-file", help="Path to file with FG4B brand voice prose"),
+):
+    """Run the full pipeline (default: pause after Stage 1 for review)."""
+    slug = slugify(topic)
+    mode = "auto" if auto else "default"
+    console.print(f"[bold]Starting pipeline[/bold] slug=[cyan]{slug}[/cyan] type=[cyan]{type}[/cyan] mode=[cyan]{mode}[/cyan]")
+    pipeline = Pipeline(slug=slug, mode=mode)
+    raw_prose = ""
+    if fg4b_file and fg4b_file.exists():
+        raw_prose = fg4b_file.read_text(encoding="utf-8")
+    elif fg4b:
+        raw_prose = fg4b
+    pipeline.run_from(0 if raw_prose else 1, raw_prose=raw_prose)
+
+
+# ---------------------------------------------------------------------------
+# research
+# ---------------------------------------------------------------------------
+
+@app.command()
+def research(
+    slug: str = typer.Argument(..., help="Draft slug"),
+):
+    """Run Stage 1: keyword strategy brief."""
+    Pipeline(slug=slug, mode="manual").run_stage(1)
+
+
+# ---------------------------------------------------------------------------
+# draft
+# ---------------------------------------------------------------------------
+
+@app.command()
+def draft(
+    slug: str = typer.Argument(..., help="Draft slug"),
+):
+    """Run Stage 2: write article draft."""
+    Pipeline(slug=slug, mode="manual").run_stage(2)
+
+
+# ---------------------------------------------------------------------------
+# images
+# ---------------------------------------------------------------------------
+
+@app.command()
+def images(
+    slug: str = typer.Argument(..., help="Draft slug"),
+):
+    """Run Stage 3: generate and upload images."""
+    Pipeline(slug=slug, mode="manual").run_stage(3)
+
+
+# ---------------------------------------------------------------------------
+# publish
+# ---------------------------------------------------------------------------
+
+@app.command()
+def publish(
+    slug: str = typer.Argument(..., help="Draft slug"),
+):
+    """Run Stage 4: assemble MDX and deploy to FG4B_Website."""
+    Pipeline(slug=slug, mode="manual").run_stage(4)
+
+
+# ---------------------------------------------------------------------------
+# preview
+# ---------------------------------------------------------------------------
+
+@app.command()
+def preview(
+    slug: str = typer.Argument(..., help="Draft slug"),
+):
+    """Copy draft to FG4B_Website and open Astro dev server with file watcher."""
+    console.print(f"[bold]preview[/bold] slug=[cyan]{slug}[/cyan] -- not implemented")
+
+
+# ---------------------------------------------------------------------------
+# add-image
+# ---------------------------------------------------------------------------
+
+@app.command(name="add-image")
+def add_image(
+    slug: str = typer.Argument(..., help="Draft slug"),
+    image_path: Path = typer.Argument(..., help="Local path to image file"),
+    after: str = typer.Option(..., "--after", help="Heading text to insert image after"),
+):
+    """Upload a local image to Cloudinary and insert it into the article."""
+    console.print(f"[bold]add-image[/bold] slug=[cyan]{slug}[/cyan] path=[cyan]{image_path}[/cyan] after=[cyan]{after}[/cyan] -- not implemented")
+
+
+# ---------------------------------------------------------------------------
+# list
+# ---------------------------------------------------------------------------
+
+@app.command(name="list")
+def list_drafts():
+    """List all slugs in the drafts directory."""
+    if not _DRAFTS_DIR.exists():
+        console.print("[dim]No drafts yet.[/dim]")
+        return
+    slugs = sorted(p.name for p in _DRAFTS_DIR.iterdir() if p.is_dir())
+    if not slugs:
+        console.print("[dim]No drafts yet.[/dim]")
+        return
+    table = Table(title="Drafts", show_header=True)
+    table.add_column("Slug", style="cyan")
+    table.add_column("Stages done")
+    for s in slugs:
+        done = _completed_stages(s)
+        stage_str = ", ".join(str(n) for n in done) if done else "--"
+        table.add_row(s, stage_str)
+    console.print(table)
+
+
+# ---------------------------------------------------------------------------
+# status
+# ---------------------------------------------------------------------------
+
+@app.command()
+def status(
+    slug: str = typer.Argument(..., help="Draft slug"),
+):
+    """Show which pipeline stages are complete for a draft."""
+    done = set(_completed_stages(slug))
+    table = Table(title=f"Status: {slug}", show_header=True)
+    table.add_column("Stage")
+    table.add_column("Name")
+    table.add_column("Done")
+    for n, name in _STAGE_NAMES.items():
+        table.add_row(str(n), name, "[green][OK][/green]" if n in done else "[dim]--[/dim]")
+    console.print(table)
+
+
+if __name__ == "__main__":
+    app()

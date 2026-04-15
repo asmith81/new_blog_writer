@@ -79,7 +79,7 @@
 ## roadmap pointer
 - Roadmap: docs/roadmap.md
 - Active plan: docs/plans/phase2-mvp.md
-- Current step: Step 1 — Shared lib utilities
+- Current step: Step 8 — End-to-end test
 
 ## process rules
 - Plan before coding — agree on approach before writing any code

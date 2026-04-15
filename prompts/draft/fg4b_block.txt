@@ -1,1 +1,27 @@
-TODO: FG4B block prompt — generate the "What This Looks Like at FG4B" callout block
+Write the FG4B callout block for a blog article about: $topic
+
+The block will be inserted into this section of the article:
+---
+$placement_context
+---
+
+FG4B BLOCK GUIDELINES:
+- Voice: first-person plural ("We've seen...", "At FG4B, we worked with...")
+- More personal than the main article voice
+- 80-150 words
+- Include one concrete short anecdote (2-3 sentences) from a real contractor scenario
+- Connect back to the article topic in one sentence
+- Do NOT pitch FG4B products or repeat what the article already said
+- Add a dimension the article cannot provide: observed reality from working with contractors
+
+STRUCTURE:
+[One sentence: the pattern or problem seen in real contractor businesses]
+[2-3 sentences: specific anecdote or example]
+[One sentence: connection back to this article's topic]
+
+OUTPUT FORMAT:
+Return only the MDX component — no explanation, no markdown fences:
+
+<FG4BBlock>
+{content here}
+</FG4BBlock>

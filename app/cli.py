@@ -1,4 +1,7 @@
 """Typer CLI entry point for new_blog_writer."""
+import logging
+import re
+import subprocess
 from pathlib import Path
 from typing import Optional
 
@@ -7,8 +10,11 @@ from rich.console import Console
 from rich.table import Table
 from slugify import slugify
 
-from app.lib.config import config
+from app.lib import cloudinary_client
+from app.lib.config import config, settings
 from app.pipeline import Pipeline
+
+logger = logging.getLogger(__name__)
 
 app = typer.Typer(
     name="blog",
@@ -41,6 +47,15 @@ def _completed_stages(slug: str) -> list[int]:
     return [n for n, fname in checkpoints.items() if (slug_dir / fname).exists()]
 
 
+def _insert_image_after_heading(article_text: str, heading: str, component: str) -> str:
+    """Insert a BlogImage component immediately after a named H2 heading."""
+    match = re.search(rf"^##\s+{re.escape(heading)}\s*$", article_text, re.MULTILINE)
+    if not match:
+        return article_text
+    pos = match.end()
+    return article_text[:pos] + "\n\n" + component + "\n" + article_text[pos:]
+
+
 # ---------------------------------------------------------------------------
 # write
 # ---------------------------------------------------------------------------
@@ -63,7 +78,12 @@ def write(
         raw_prose = fg4b_file.read_text(encoding="utf-8")
     elif fg4b:
         raw_prose = fg4b
-    pipeline.run_from(0 if raw_prose else 1, raw_prose=raw_prose)
+    pipeline.run_from(
+        0 if raw_prose else 1,
+        raw_prose=raw_prose,
+        topic=topic,
+        article_type=type,
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -122,8 +142,24 @@ def publish(
 def preview(
     slug: str = typer.Argument(..., help="Draft slug"),
 ):
-    """Copy draft to FG4B_Website and open Astro dev server with file watcher."""
-    console.print(f"[bold]preview[/bold] slug=[cyan]{slug}[/cyan] -- not implemented")
+    """Open the Astro dev server for a published article."""
+    if not settings.fg4b_website_path:
+        console.print("[red][FAIL] FG4B_WEBSITE_PATH is not set in .env[/red]")
+        raise typer.Exit(1)
+
+    mdx_path = Path(settings.fg4b_website_path) / "src" / "content" / "blog" / f"{slug}.mdx"
+    if not mdx_path.exists():
+        console.print(
+            f"[red][FAIL] {slug}.mdx not found — run /publish first.[/red]"
+        )
+        raise typer.Exit(1)
+
+    url = f"http://localhost:4321/blog/{slug}"
+    console.print(f"[bold]Starting Astro dev server...[/bold]")
+    console.print(f"[cyan]Preview URL:[/cyan] {url}")
+    console.print("[dim]Press Ctrl+C to stop.[/dim]")
+
+    subprocess.run("npm run dev", cwd=settings.fg4b_website_path, shell=True)
 
 
 # ---------------------------------------------------------------------------
@@ -137,7 +173,34 @@ def add_image(
     after: str = typer.Option(..., "--after", help="Heading text to insert image after"),
 ):
     """Upload a local image to Cloudinary and insert it into the article."""
-    console.print(f"[bold]add-image[/bold] slug=[cyan]{slug}[/cyan] path=[cyan]{image_path}[/cyan] after=[cyan]{after}[/cyan] -- not implemented")
+    if not image_path.exists():
+        console.print(f"[red][FAIL] Image not found: {image_path}[/red]")
+        raise typer.Exit(1)
+
+    article_path = _DRAFTS_DIR / slug / "article.md"
+    if not article_path.exists():
+        console.print(f"[red][FAIL] article.md not found for slug={slug!r} — run /draft first.[/red]")
+        raise typer.Exit(1)
+
+    image_id = image_path.stem
+    public_id = f"blog/{slug}/{image_id}"
+
+    console.print(f"Uploading [cyan]{image_path.name}[/cyan] to Cloudinary...")
+    image_bytes = image_path.read_bytes()
+    url = cloudinary_client.upload(image_bytes, public_id=public_id)
+    console.print(f"[green][OK] Uploaded:[/green] {url}")
+
+    component = f'<BlogImage src="{url}" alt="{image_id}" caption="" />'
+    article_text = article_path.read_text(encoding="utf-8")
+    updated = _insert_image_after_heading(article_text, after, component)
+
+    if updated == article_text:
+        console.print(f"[yellow]Warning: heading {after!r} not found in article — image not inserted.[/yellow]")
+    else:
+        article_path.write_text(updated, encoding="utf-8")
+        console.print(f"[green][OK] BlogImage inserted after:[/green] {after!r}")
+
+    console.print("[dim]Run /publish to update the live MDX file.[/dim]")
 
 
 # ---------------------------------------------------------------------------

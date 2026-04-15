@@ -1,6 +1,6 @@
 # Phase 2 — MVP
 
-**Status:** Active
+**Status:** Active — Steps 1–7 complete, Step 8 (end-to-end) next
 **Goal:** All 5 pipeline stages fully implemented with real API calls. Preview and add-image commands working. End-to-end test publishes a real article to FG4B_Website.
 **Last updated:** 2026-04-14
 

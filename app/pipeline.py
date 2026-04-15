@@ -9,10 +9,10 @@ console = Console()
 
 _STAGES: dict[int, tuple[str, callable]] = {
     0: ("fg4b-input", lambda slug, **kw: fg4b_input.run(slug, kw.get("raw_prose", ""))),
-    1: ("research", lambda slug, **kw: research.run(slug)),
-    2: ("draft", lambda slug, **kw: draft.run(slug)),
-    3: ("images", lambda slug, **kw: images.run(slug)),
-    4: ("publish", lambda slug, **kw: publish.run(slug)),
+    1: ("research",   lambda slug, **kw: research.run(slug, kw.get("topic", slug), kw.get("article_type", "how-to"))),
+    2: ("draft",      lambda slug, **kw: draft.run(slug)),
+    3: ("images",     lambda slug, **kw: images.run(slug)),
+    4: ("publish",    lambda slug, **kw: publish.run(slug)),
 }
 
 
@@ -30,5 +30,8 @@ class Pipeline:
         for n in range(stage, len(_STAGES)):
             self.run_stage(n, **kwargs)
             if self.mode == "default" and n == 1:
-                console.print("\n[yellow]Stage 1 complete. Review the brief above, then run /draft to continue.[/yellow]")
+                console.print(
+                    "\n[yellow]Stage 1 complete. Review the brief above, "
+                    "then run /draft to continue.[/yellow]"
+                )
                 break

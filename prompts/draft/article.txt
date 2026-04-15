@@ -1,1 +1,61 @@
-TODO: Article writing directive — full article generation from brief, section by section
+Write a complete blog article following the brief below. Every structural and keyword decision in the brief is a directive — follow it exactly.
+
+BRIEF:
+$brief_json
+
+---
+
+STRUCTURE REQUIREMENTS:
+
+1. H1 TITLE
+   Use brief.keyword_placement.h1_text exactly.
+   Format: # {h1_text}
+
+2. INTRO PARAGRAPH (80-120 words)
+   - PAS framework: Problem → Agitate → Solution (hint)
+   - Primary keyword in first 100 words
+   - Do NOT start with "In this article..." or any greeting
+   - End with a sentence that sets up what the article delivers
+
+3. KEY TAKEAWAYS
+   Format: ## Key Takeaways
+   - 3-5 bullet points
+   - Each bullet answers a real question the reader came with
+   - Written as complete sentences, not fragments
+
+4. H2 SECTIONS
+   - Use the exact heading text from brief.sections (in order)
+   - Place assigned_keywords naturally in the section
+   - Hit each section's word_count_target (±10%)
+   - Follow the notes field for each section — those are your writing instructions
+   - At least one concrete observed example per major section
+
+5. FAQ SECTION
+   The last content section before Conclusion.
+   Format: ## Frequently Asked Questions
+   Use the questions from brief.faq_questions exactly.
+   Answers: 50-80 words each. Direct. No preamble.
+   Format each as: **Q: {question}**\n\n{answer}
+
+6. CONCLUSION (80-120 words)
+   - Reinforces the primary value delivered
+   - Ends with a soft CTA: what the reader should do next
+   - Do NOT start with "In conclusion"
+
+LINKS:
+- Internal links: insert as standard markdown [anchor text](/blog/{target_slug}) at the placement_section specified in brief.internal_links
+- External link: insert as <a href="{url}" target="_blank" rel="noopener noreferrer">{anchor_text}</a> at the placement_section in brief.external_link
+- Anchor text must match the brief exactly — never use "click here"
+
+IMAGES:
+- Do NOT include image tags or placeholders — images are inserted by a separate pipeline stage
+- Write the text so it flows naturally at the word-count targets; images will be inserted after specified headings
+
+FG4B BLOCK:
+- Do NOT include a FG4B block — it is generated and inserted by a separate pipeline step
+- Write section content as complete prose without leaving a gap for it
+
+OUTPUT:
+- Return raw markdown only
+- No frontmatter, no code fences, no explanation
+- Start directly with the # H1 heading

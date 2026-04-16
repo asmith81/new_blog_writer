@@ -27,7 +27,7 @@ def test_all_commands_listed_in_help():
 @patch("app.cli.Pipeline")
 def test_write_stub_runs_without_crash(mock_pipeline_cls):
     mock_pipeline_cls.return_value.run_from = MagicMock()
-    result = runner.invoke(app, ["write", "test topic", "--type", "how-to"])
+    result = runner.invoke(app, ["write"], input="test topic\nhow-to\n\nn\n")
     assert result.exit_code == 0
     assert "test-topic" in result.output
 
@@ -35,7 +35,7 @@ def test_write_stub_runs_without_crash(mock_pipeline_cls):
 @patch("app.cli.Pipeline")
 def test_write_auto_flag(mock_pipeline_cls):
     mock_pipeline_cls.return_value.run_from = MagicMock()
-    result = runner.invoke(app, ["write", "test topic", "--auto"])
+    result = runner.invoke(app, ["write", "--auto"], input="test topic\nhow-to\n\nn\n")
     assert result.exit_code == 0
     assert "auto" in result.output
 
@@ -43,9 +43,11 @@ def test_write_auto_flag(mock_pipeline_cls):
 @patch("app.cli.Pipeline")
 def test_research_stub_runs(mock_pipeline_cls):
     mock_pipeline_cls.return_value.run_stage = MagicMock()
-    result = runner.invoke(app, ["research", "test-slug"])
+    result = runner.invoke(app, ["research"], input="test topic\nhow-to\n\nn\n")
     assert result.exit_code == 0
-    mock_pipeline_cls.return_value.run_stage.assert_called_once_with(1)
+    mock_pipeline_cls.return_value.run_stage.assert_called_once_with(
+        1, topic="test topic", article_type="how-to"
+    )
 
 
 @patch("app.cli.Pipeline")

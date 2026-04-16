@@ -2,9 +2,11 @@
 import logging
 import re
 import subprocess
+import sys
 from pathlib import Path
 from typing import Optional
 
+import click
 import typer
 from rich.console import Console
 from rich.table import Table
@@ -57,32 +59,51 @@ def _insert_image_after_heading(article_text: str, heading: str, component: str)
 
 
 # ---------------------------------------------------------------------------
+# interview helper
+# ---------------------------------------------------------------------------
+
+def run_interview():
+    """Collect topic, article type, slug, and optional prose interactively."""
+    topic = typer.prompt("Main keyword / topic")
+    article_type = typer.prompt(
+        "Article type",
+        default="how-to",
+        type=click.Choice(["how-to", "guide", "list", "comparison"]),
+    )
+    suggested_slug = slugify(topic)
+    raw_slug = typer.prompt("Slug", default=suggested_slug)
+    slug = slugify(raw_slug)
+    add_prose = typer.confirm("Add local experience text?", default=False)
+    raw_prose = ""
+    if add_prose:
+        console.print("[dim]Paste text — blank line to finish:[/dim]")
+        lines = []
+        for line in sys.stdin:
+            stripped = line.rstrip("\n")
+            if stripped == "":
+                break
+            lines.append(stripped)
+        raw_prose = "\n".join(lines)
+    return slug, topic, article_type, raw_prose
+
+
+# ---------------------------------------------------------------------------
 # write
 # ---------------------------------------------------------------------------
 
 @app.command()
 def write(
-    topic: str = typer.Argument(..., help="Article topic"),
-    type: str = typer.Option("how-to", "--type", "-t", help="Article type (how-to, guide, list, comparison)"),
     auto: bool = typer.Option(False, "--auto", help="Run all stages without pausing"),
-    fg4b: Optional[str] = typer.Option(None, "--fg4b", help="FG4B brand voice prose (inline)"),
-    fg4b_file: Optional[Path] = typer.Option(None, "--fg4b-file", help="Path to file with FG4B brand voice prose"),
 ):
     """Run the full pipeline (default: pause after Stage 1 for review)."""
-    slug = slugify(topic)
+    slug, topic, article_type, raw_prose = run_interview()
     mode = "auto" if auto else "default"
-    console.print(f"[bold]Starting pipeline[/bold] slug=[cyan]{slug}[/cyan] type=[cyan]{type}[/cyan] mode=[cyan]{mode}[/cyan]")
-    pipeline = Pipeline(slug=slug, mode=mode)
-    raw_prose = ""
-    if fg4b_file and fg4b_file.exists():
-        raw_prose = fg4b_file.read_text(encoding="utf-8")
-    elif fg4b:
-        raw_prose = fg4b
-    pipeline.run_from(
+    console.print(f"[bold]Starting pipeline[/bold] slug=[cyan]{slug}[/cyan] type=[cyan]{article_type}[/cyan] mode=[cyan]{mode}[/cyan]")
+    Pipeline(slug=slug, mode=mode).run_from(
         0 if raw_prose else 1,
         raw_prose=raw_prose,
         topic=topic,
-        article_type=type,
+        article_type=article_type,
     )
 
 
@@ -91,11 +112,13 @@ def write(
 # ---------------------------------------------------------------------------
 
 @app.command()
-def research(
-    slug: str = typer.Argument(..., help="Draft slug"),
-):
+def research():
     """Run Stage 1: keyword strategy brief."""
-    Pipeline(slug=slug, mode="manual").run_stage(1)
+    slug, topic, article_type, raw_prose = run_interview()
+    p = Pipeline(slug=slug, mode="manual")
+    if raw_prose:
+        p.run_stage(0, raw_prose=raw_prose)
+    p.run_stage(1, topic=topic, article_type=article_type)
 
 
 # ---------------------------------------------------------------------------

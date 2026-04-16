@@ -1,8 +1,8 @@
 Run the full blog pipeline for a new article topic.
 
-Usage: /write <topic> [--type how-to|guide|list|comparison] [--auto] [--fg4b "prose"] [--fg4b-file path]
+Usage: /write [--auto]
 
-Default mode: pauses after Stage 1 (research brief) for review before continuing.
+Runs an interview first — prompts for topic, article type, slug, and optional local experience prose.
 Use --auto to run all stages without pausing.
 
 Steps:
